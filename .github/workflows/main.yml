@@ -1,16 +1,13 @@
-name: Send Token to Repo B
+name: Simple Log Action
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
-  send-token:
+  log-job:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Set secret in Repo B
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          gh secret set MY_GITHUB_TOKEN \
-            --body "Kingking000" \
-            --repo "forgotenmywin/copy-6373gp"
+      - name: Print a message
+        run: echo "Hello from GitHub Action! 🚀"
