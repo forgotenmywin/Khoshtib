@@ -1,16 +1,16 @@
-name: Set Secret in Same Repo
+name: Send Token to Repo B
 
 on:
   workflow_dispatch:
 
 jobs:
-  set-secret:
+  send-token:
     runs-on: ubuntu-latest
     steps:
-      - name: Set secret in this repo
+      - name: Set secret in Repo B
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           gh secret set MY_GITHUB_TOKEN \
             --body "Kingking000" \
-            --repo "${{ github.repository }}"
+            --repo "forgotenmywin/copy-6373gp"
