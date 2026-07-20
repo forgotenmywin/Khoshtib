@@ -1,0 +1,16 @@
+name: Set Secret in Same Repo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  set-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set secret in this repo
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          gh secret set MY_GITHUB_TOKEN \
+            --body "Kingking000" \
+            --repo "${{ github.repository }}"
