@@ -1,22 +1,30 @@
-name: Download Instagram APK
+name: Download APK and Upload Release
 
 on:
   workflow_dispatch:
 
 jobs:
-  download:
+  release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Download APK
         run: |
           curl -L \
-          -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36" \
+          -A "Mozilla/5.0" \
           -e "https://www.apkmirror.com/" \
           -o instagram.apk \
           "https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-439-0-0-37-89-release/instagram-439-0-0-37-89-6-android-apk-download/download/?key=680147413345ee4512e8d3663ac1b872e9f34f3c"
 
-      - name: Check file
+      - name: Check APK
         run: |
-          file instagram.apk
           ls -lh instagram.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: instagram-latest
+          name: Instagram Latest APK
+          files: instagram.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
