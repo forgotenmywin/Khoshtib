@@ -1,36 +1,20 @@
-name: Download APK and Upload Release
+name: Test Android Emulator
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  release:
+  emulator:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Instagram APK
-        run: |
-          curl -L \
-          -A "Mozilla/5.0" \
-          -e "https://www.apkmirror.com/" \
-          -o instagram.apk \
-          "https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-439-0-0-37-89-release/instagram-439-0-0-37-89-6-android-apk-download/download/?key=680147413345ee4512e8d3663ac1b872e9f34f3c"
+      - uses: actions/checkout@v4
 
-      - name: Check APK
-        run: |
-          ls -lh instagram.apk
-          file instagram.apk
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Run Android Emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
         with:
-          tag_name: instagram-439
-          name: Instagram 439.0.0.37.89 APK
-          body: |
-            Instagram APK downloaded automatically.
-          files: instagram.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          api-level: 30
+          arch: x86_64
+          script: |
+            adb devices
+            adb shell getprop ro.build.version.release
