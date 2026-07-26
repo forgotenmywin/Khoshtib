@@ -1,13 +1,29 @@
-name: Simple Log Action
+name: Download APK
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
-  log-job:
+  download-apk:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Print a message
-        run: echo "Hello from GitHub Action! 🚀"
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download base.apk from Flask ngrok
+        run: |
+          curl -L "https://ramrod-unroll-degree.ngrok-free.dev/base.apk" -o base.apk
+
+      - name: Check file
+        run: |
+          ls -lh base.apk
+
+      - name: Commit and push APK
+        run: |
+          git config user.name "github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add base.apk
+          git commit -m "Add base.apk" || echo "No changes"
+          git push
