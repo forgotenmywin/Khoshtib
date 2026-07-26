@@ -1,29 +1,37 @@
-name: Download APK
+name: Upload APK
 
 on:
   workflow_dispatch:
 
 jobs:
-  download-apk:
+  upload:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download base.apk from Flask ngrok
+      - name: Download APK
         run: |
-          curl -L "https://ramrod-unroll-degree.ngrok-free.dev/base.apk" -o base.apk
+          curl --http1.1 -L --retry 10 --retry-delay 5 \
+          "https://ramrod-unroll-degree.ngrok-free.dev/base.apk" \
+          -o base.apk
 
-      - name: Check file
+      - name: Show APK
         run: |
           ls -lh base.apk
 
-      - name: Commit and push APK
+      - name: Push to GitHub
+        env:
+          TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/forgotenmywin/Khoshtib.git
 
           git add base.apk
-          git commit -m "Add base.apk" || echo "No changes"
-          git push
+
+          git commit -m "Upload base.apk" || true
+
+          git push origin HEAD:main
