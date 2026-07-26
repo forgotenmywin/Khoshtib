@@ -3,12 +3,15 @@ name: Download APK and Upload Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download APK
+      - name: Download Instagram APK
         run: |
           curl -L \
           -A "Mozilla/5.0" \
@@ -19,12 +22,15 @@ jobs:
       - name: Check APK
         run: |
           ls -lh instagram.apk
+          file instagram.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: instagram-latest
-          name: Instagram Latest APK
+          tag_name: instagram-439
+          name: Instagram 439.0.0.37.89 APK
+          body: |
+            Instagram APK downloaded automatically.
           files: instagram.apk
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
