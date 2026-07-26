@@ -1,20 +1,54 @@
-name: Test Android Emulator
+name: Instagram Emulator Test
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   emulator:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Run Android Emulator
+      - name: Enable KVM
+        run: |
+          sudo sh -c 'echo KERNEL==\"kvm\",GROUP=\"kvm\",MODE=\"0666\",OPTIONS+=\"static_node=kvm\" > /etc/udev/rules.d/99-kvm4all.rules'
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Download Instagram APK
+        run: |
+          curl -L \
+            -o instagram.apk \
+            "https://github.com/forgotenmywin/Khoshtib/releases/download/instagram-439/instagram.apk"
+
+      - name: Start Emulator
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: 30
           arch: x86_64
+          profile: pixel
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            adb devices
-            adb shell getprop ro.build.version.release
+            adb wait-for-device
+
+            echo "Installing APK..."
+            adb install -r instagram.apk
+
+            echo "Launching Instagram..."
+            adb shell monkey -p com.instagram.android -c android.intent.category.LAUNCHER 1
+
+            sleep 20
+
+            echo "Taking Screenshot..."
+            adb exec-out screencap -p > screenshot.png
+
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-screenshot
+          path: screenshot.png
