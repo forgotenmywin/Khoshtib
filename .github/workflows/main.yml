@@ -1,3 +1,23 @@
-- name: Download APK
-  run: |
-    wget -O instagram.apk "https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-439-0-0-37-89-release/instagram-439-0-0-37-89-6-android-apk-download/download/?key=680147413345ee4512e8d3663ac1b872e9f34f3c"
+name: Download Instagram APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK
+        run: |
+          wget -O instagram.apk "https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-439-0-0-37-89-release/instagram-439-0-0-37-89-6-android-apk-download/download/?key=680147413345ee4512e8d3663ac1b872e9f34f3c"
+
+      - name: Check file
+        run: |
+          ls -lh instagram.apk
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-439
+          path: instagram.apk
