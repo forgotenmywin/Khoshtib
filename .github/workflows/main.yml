@@ -1,5 +1,5 @@
 # .github/workflows/run.yml
-name: Browser Only
+name: Browser with Click and Screenshots
 
 on:
   workflow_dispatch:
@@ -41,10 +41,12 @@ jobs:
       - name: Run script
         run: python main.py
       
-      - name: Upload screenshot
+      - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshot
-          path: screenshot_*.png
+          name: screenshots
+          path: |
+            screenshot_*.png
+            error_*.png
           retention-days: 7
