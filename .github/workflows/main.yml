@@ -1,28 +1,50 @@
-name: Test APK
+# .github/workflows/run.yml
+name: Browser Only
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  run:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Download APK
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: pip install selenium
+      
+      - name: Install Chrome
         run: |
-          curl -L -o instagram.apk \
-          "https://github.com/forgotenmywin/Khoshtib/releases/download/instagram-439/instagram.apk"
-
-      - name: Test File
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+      
+      - name: Setup ChromeDriver
         run: |
-          echo "===== FILE SIZE ====="
-          ls -lh instagram.apk
-
-          echo "===== FILE TYPE ====="
-          file instagram.apk
-
-          echo "===== FIRST 20 LINES ====="
-          head -20 instagram.apk || true
-
-          echo "===== ZIP TEST ====="
-          unzip -t instagram.apk || true
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1-3)
+          LATEST_DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_$CHROME_VERSION")
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/$LATEST_DRIVER_VERSION/linux64/chromedriver-linux64.zip"
+          unzip -q chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+      
+      - name: Run script
+        run: python main.py
+      
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot
+          path: screenshot_*.png
+          retention-days: 7
