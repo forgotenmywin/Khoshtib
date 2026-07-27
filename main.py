@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 import time
 
-TARGET_URL = "https://hashora.net/register?ref=KINGKINGPLM0073637"
+TARGET_URL = "https://omnihash.vip/register?ref=REFUPZ1KI"
 
 # ===== مختصات کلیک =====
 CLICK_X = 828
