@@ -1,14 +1,9 @@
-# main.py
+# main.py - فقط مرورگر باز میشه و بعد ۲۰ ثانیه یک عکس میگیره
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 
-TARGET_URL = "https://omnihash.vip/register?ref=REFUPZ1KI"
-
-# ===== مختصات کلیک =====
-CLICK_X = 828
-CLICK_Y = 936
+TARGET_URL = "https://hashora.net/register?ref=KINGKINGPLM0073637"
 
 # ===== تنظیمات مرورگر =====
 options = Options()
@@ -21,42 +16,6 @@ options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) App
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
-
-# =============================================
-# ===== توابع =====
-# =============================================
-
-def click_at(driver, x, y, label=""):
-    """کلیک در مختصات مشخص"""
-    try:
-        actions = ActionChains(driver)
-        actions.move_by_offset(x, y).click().perform()
-        print(f"✅ Clicked at ({x}, {y}) {label}")
-        return True
-    except:
-        try:
-            result = driver.execute_script(f"""
-                var element = document.elementFromPoint({x}, {y});
-                if (element) {{
-                    element.click();
-                    element.focus();
-                    return true;
-                }}
-                return false;
-            """)
-            if result:
-                print(f"✅ Clicked at ({x}, {y}) with JavaScript {label}")
-                return True
-        except Exception as e:
-            print(f"❌ Click failed: {e}")
-            return False
-
-def take_screenshot(driver, name, timestamp):
-    """گرفتن اسکرین‌شات"""
-    filename = f"{name}_{timestamp}.png"
-    driver.save_screenshot(filename)
-    print(f"📸 Screenshot saved: {filename}")
-    return filename
 
 # =============================================
 # ===== اجرای اصلی =====
@@ -75,28 +34,18 @@ try:
     print(f"\n🌐 Opening {TARGET_URL}...")
     driver.get(TARGET_URL)
     
-    # ===== انتظار ۲۰ ثانیه =====
     print("\n⏳ Waiting 20 seconds...")
     for i in range(20, 0, -1):
         print(f"   {i}s remaining...", end="\r")
         time.sleep(1)
     print("\n✅ 20 seconds passed!")
     
-    # ===== کلیک در مختصات =====
-    print(f"\n🖱️ Clicking at ({CLICK_X}, {CLICK_Y})...")
-    click_at(driver, CLICK_X, CLICK_Y, "(Click)")
-    time.sleep(1)
+    # گرفتن یک اسکرین‌شات
+    screenshot_path = f"screenshot_{timestamp}.png"
+    driver.save_screenshot(screenshot_path)
+    print(f"📸 Screenshot saved: {screenshot_path}")
     
-    # ===== ۵ اسکرین‌شات با فاصله ۱ ثانیه =====
-    print("\n📸 Taking 5 screenshots (every 1 second)...")
-    for i in range(1, 6):
-        screenshot_name = f"screenshot_{i}"
-        take_screenshot(driver, screenshot_name, timestamp)
-        if i < 5:
-            time.sleep(1)
-    
-    print("\n✅ ALL DONE!")
-    print(f"📸 5 screenshots saved: screenshot_1 to screenshot_5")
+    print("\n✅ DONE!")
     
 except Exception as e:
     print(f"❌ Error: {e}")
