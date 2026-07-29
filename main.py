@@ -1,8 +1,7 @@
-# main.py
+# main.py - با اسم ثابت
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
-
 TARGET_URL = "pornhub.com"
 
 options = Options()
@@ -34,7 +33,7 @@ try:
         time.sleep(1)
     print("\n✅ 20 seconds passed!")
     
-    # اسم فایل رو عوض کردیم به screenshot.png
+    # اسم فایل ثابت
     screenshot_path = "screenshot.png"
     driver.save_screenshot(screenshot_path)
     print(f"📸 Screenshot saved: {screenshot_path}")
