@@ -1,20 +1,24 @@
-name: Test APK
+name: Run Instagram APK
 
 on:
   workflow_dispatch:
 
 jobs:
-  emulator:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable KVM (not needed on macOS)
+        run: echo "Using macOS runner"
+
       - name: Download APK
         run: |
-          wget -O instagram.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
+          curl -L -o instagram.apk \
+          https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk
 
-      - name: Run Android Emulator
+      - name: Run Emulator
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -23,20 +27,16 @@ jobs:
           script: |
             adb wait-for-device
 
-            echo "Installing APK..."
             adb install -r instagram.apk
 
-            echo "Launching Instagram..."
             adb shell monkey -p com.instagram.android -c android.intent.category.LAUNCHER 1
 
-            echo "Waiting 10 seconds..."
             sleep 10
 
-            echo "Taking screenshot..."
             adb exec-out screencap -p > screenshot.png
 
       - name: Upload Screenshot
         uses: actions/upload-artifact@v4
         with:
-          name: instagram-screenshot
+          name: screenshot
           path: screenshot.png
