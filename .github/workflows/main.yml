@@ -1,53 +1,42 @@
-name: Verify APK
+name: Test APK
 
 on:
   workflow_dispatch:
 
 jobs:
-  verify:
+  emulator:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y file unzip
+      - uses: actions/checkout@v4
 
       - name: Download APK
         run: |
           wget -O instagram.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
 
-      - name: Show file info
-        run: |
-          echo "===== FILE SIZE ====="
-          ls -lh instagram.apk
+      - name: Run Android Emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel
+          script: |
+            adb wait-for-device
 
-          echo "===== FILE TYPE ====="
-          file instagram.apk
+            echo "Installing APK..."
+            adb install -r instagram.apk
 
-      - name: Verify APK
-        run: |
-          echo "===== ZIP TEST ====="
-          unzip -t instagram.apk
+            echo "Launching Instagram..."
+            adb shell monkey -p com.instagram.android -c android.intent.category.LAUNCHER 1
 
-          echo "===== CONTENTS ====="
-          unzip -l instagram.apk | head -50
+            echo "Waiting 10 seconds..."
+            sleep 10
 
-          echo "===== CHECK AndroidManifest ====="
-          unzip -l instagram.apk | grep "AndroidManifest.xml"
+            echo "Taking screenshot..."
+            adb exec-out screencap -p > screenshot.png
 
-          echo "===== CHECK classes.dex ====="
-          unzip -l instagram.apk | grep "classes.dex"
-
-          echo "===== CHECK META-INF ====="
-          unzip -l instagram.apk | grep "META-INF"
-
-      - name: Result
-        run: |
-          if unzip -l instagram.apk | grep -q "AndroidManifest.xml" && \
-             unzip -l instagram.apk | grep -q "classes.dex"; then
-            echo "✅ VALID APK"
-          else
-            echo "❌ NOT A VALID APK"
-            exit 1
-          fi
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-screenshot
+          path: screenshot.png
