@@ -41,10 +41,21 @@ jobs:
       - name: Run script
         run: python main.py
       
+      - name: List files
+        run: ls -la
+      
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: screenshot
-          path: screenshot_*.png
+          path: screenshot.png
+          retention-days: 7
+      
+      - name: Upload error (if exists)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error
+          path: error.png
           retention-days: 7
