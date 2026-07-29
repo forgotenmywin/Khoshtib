@@ -1,11 +1,10 @@
-# main.py - فقط مرورگر باز میشه و بعد ۲۰ ثانیه یک عکس میگیره
+# main.py
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 
-TARGET_URL ="pornhub.com"
+TARGET_URL = "https://hashora.net/register?ref=KINGKINGPLM0073637"
 
-# ===== تنظیمات مرورگر =====
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
@@ -17,12 +16,7 @@ options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-# =============================================
-# ===== اجرای اصلی =====
-# =============================================
-
 driver = None
-timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
 
 try:
     print("=" * 70)
@@ -40,8 +34,8 @@ try:
         time.sleep(1)
     print("\n✅ 20 seconds passed!")
     
-    # گرفتن یک اسکرین‌شات
-    screenshot_path = f"screenshot_{timestamp}.png"
+    # اسم فایل رو عوض کردیم به screenshot.png
+    screenshot_path = "screenshot.png"
     driver.save_screenshot(screenshot_path)
     print(f"📸 Screenshot saved: {screenshot_path}")
     
@@ -50,7 +44,7 @@ try:
 except Exception as e:
     print(f"❌ Error: {e}")
     if driver:
-        driver.save_screenshot(f"error_{timestamp}.png")
+        driver.save_screenshot("error.png")
     import traceback
     traceback.print_exc()
     
