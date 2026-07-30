@@ -8,36 +8,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
+      - name: Authenticate Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup gcloud SDK
+      - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: starry-polymer-482712-b2
 
-      - name: Enable Cloud Testing API
+      - name: Check account
         run: |
-          gcloud services enable testing.googleapis.com
+          gcloud auth list
+          gcloud config list
 
       - name: Download APK
         run: |
-          wget -O app.apk \
+          wget -O instagram.apk \
           "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
 
-      - name: Verify APK
+      - name: Check APK
         run: |
-          ls -lh app.apk
-          file app.apk
+          ls -lh instagram.apk
+          file instagram.apk
 
       - name: Run Firebase Test Lab
         run: |
           gcloud firebase test android run \
-            --app app.apk \
+            --project starry-polymer-482712-b2 \
+            --app instagram.apk \
             --type robo \
             --device model=Pixel2,version=30,locale=en,orientation=portrait
