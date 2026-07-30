@@ -13,15 +13,19 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup gcloud
+      - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: starry-polymer-482712-b2
 
+      - name: Verify gcloud
+        run: |
+          gcloud auth list
+          gcloud config list
+
       - name: Download APK
         run: |
-          wget -O instagram.apk \
-          "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
+          wget -O instagram.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
 
       - name: Verify APK
         run: |
@@ -35,5 +39,4 @@ jobs:
             --type=robo \
             --app=instagram.apk \
             --device=model=MediumPhone.arm,version=34,locale=en,orientation=portrait \
-            --timeout=10m \
-            --results-bucket=gs://test-lab-$(date +%s)
+            --timeout=10m
