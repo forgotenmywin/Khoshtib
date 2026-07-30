@@ -1,42 +1,23 @@
-name: Run Instagram APK
+name: Check Runner
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  check:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Enable KVM (not needed on macOS)
-        run: echo "Using macOS runner"
-
-      - name: Download APK
+      - name: Show runner info
         run: |
-          curl -L -o instagram.apk \
-          https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk
+          echo "===== uname ====="
+          uname -a
 
-      - name: Run Emulator
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel
-          script: |
-            adb wait-for-device
+          echo "===== Architecture ====="
+          uname -m
 
-            adb install -r instagram.apk
+          echo "===== CPU ====="
+          sysctl -n machdep.cpu.brand_string || true
 
-            adb shell monkey -p com.instagram.android -c android.intent.category.LAUNCHER 1
-
-            sleep 10
-
-            adb exec-out screencap -p > screenshot.png
-
-      - name: Upload Screenshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshot
-          path: screenshot.png
+          echo "===== OS ====="
+          sw_vers || true
