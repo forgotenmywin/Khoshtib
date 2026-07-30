@@ -1,105 +1,27 @@
-name: Firebase Test Lab
+name: Install and Run APK
 
 on:
   workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-
-    env:
-      PROJECT_ID: starry-polymer-482712-b2
-      APK_URL: https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk
-      DEVICE_MODEL: MediumPhone.arm
-      DEVICE_VERSION: "34"
-      DEVICE_LOCALE: en
-      DEVICE_ORIENTATION: portrait
-
+    runs-on: macos-latest
     steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Emulator and Install APK
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.PROJECT_ID }}
-
-      - name: Verify gcloud
-        run: |
-          gcloud auth list
-          gcloud config list
-
-      - name: Download APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -L --fail "${APK_URL}" -o instagram.apk
-
-      - name: Verify APK
-        shell: bash
-        run: |
-          ls -lh instagram.apk
-          file instagram.apk
-
-      - name: Run Firebase Test Lab
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          gcloud firebase test android run \
-            --project="${PROJECT_ID}" \
-            --type=robo \
-            --app=instagram.apk \
-            --device="model=${DEVICE_MODEL},version=${DEVICE_VERSION},locale=${DEVICE_LOCALE},orientation=${DEVICE_ORIENTATION}" \
-            --timeout=30m 2>&1 | tee testlab.log
-
-          echo "${PIPESTATUS[0]}" > gcloud_exit_code.txt
-          exit "${PIPESTATUS[0]}"
-
-      - name: Download Test Lab results
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p testlab-results-raw testlab-results-clean
-
-          RESULT_URL="$(grep -oE 'https://console\.developers\.google\.com/storage/browser/[^]]+' testlab.log | head -n 1 || true)"
-          if [ -z "$RESULT_URL" ]; then
-            echo "No results URL found in testlab.log"
-            exit 0
-          fi
-
-          RESULT_GS="gs://${RESULT_URL#https://console.developers.google.com/storage/browser/}"
-          echo "RESULT_GS=$RESULT_GS" | tee result_bucket.txt
-
-          gcloud storage cp --recursive "$RESULT_GS" testlab-results-raw || true
-
-          if [ -d testlab-results-raw ]; then
-            find testlab-results-raw -mindepth 1 | while IFS= read -r path; do
-              rel="${path#testlab-results-raw/}"
-              safe_rel="${rel//:/-}"
-              target="testlab-results-clean/$safe_rel"
-
-              if [ -d "$path" ]; then
-                mkdir -p "$target"
-              else
-                mkdir -p "$(dirname "$target")"
-                cp "$path" "$target"
-              fi
-            done
-          fi
-
-      - name: Upload Firebase Test Lab artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: firebase-testlab-results
-          path: |
-            testlab-results-clean/**
-            testlab.log
-            gcloud_exit_code.txt
-            result_bucket.txt
-          if-no-files-found: ignore
+          api-level: 30
+          arch: arm64-v8a
+          target: google_apis
+          script: |
+            # دانلود با گزینه های مقاوم
+            curl -L -o app.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk" --fail --retry 3
+            
+            # نصب
+            adb install app.apk
+            
+            # اجرا
+            adb shell am start -n com.instagram.android/com.instagram.mainactivity.LauncherActivity
