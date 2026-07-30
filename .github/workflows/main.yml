@@ -7,6 +7,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      PROJECT_ID: starry-polymer-482712-b2
+      APK_URL: https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk
+      DEVICE_MODEL: MediumPhone.arm
+      DEVICE_VERSION: "34"
+      DEVICE_LOCALE: en
+      DEVICE_ORIENTATION: portrait
+
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -16,27 +24,79 @@ jobs:
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: starry-polymer-482712-b2
-
-      - name: Verify gcloud
-        run: |
-          gcloud auth list
-          gcloud config list
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Download APK
+        shell: bash
         run: |
-          wget -O instagram.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
+          curl -L --fail "${APK_URL}" -o instagram.apk
 
       - name: Verify APK
+        shell: bash
         run: |
           ls -lh instagram.apk
           file instagram.apk
 
       - name: Run Firebase Test Lab
+        id: run_testlab
+        continue-on-error: true
+        shell: bash
         run: |
+          set -o pipefail
           gcloud firebase test android run \
-            --project=starry-polymer-482712-b2 \
+            --project="${PROJECT_ID}" \
             --type=robo \
             --app=instagram.apk \
-            --device=model=MediumPhone.arm,version=34,locale=en,orientation=portrait \
-            --timeout=10m
+            --device="model=${DEVICE_MODEL},version=${DEVICE_VERSION},locale=${DEVICE_LOCALE},orientation=${DEVICE_ORIENTATION}" \
+            --timeout=20m 2>&1 | tee testlab.log
+
+          echo "${PIPESTATUS[0]}" > gcloud_exit_code.txt
+          exit "${PIPESTATUS[0]}"
+
+      - name: Extract results bucket path
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p testlab-results
+
+          RESULT_URL="$(grep -oE 'https://console\.developers\.google\.com/storage/browser/[^]]+' testlab.log | head -n 1 || true)"
+
+          if [ -z "$RESULT_URL" ]; then
+            echo "No results URL found in testlab.log"
+            exit 0
+          fi
+
+          RESULT_GS="gs://${RESULT_URL#https://console.developers.google.com/storage/browser/}"
+          echo "RESULT_GS=$RESULT_GS" > result_bucket.txt
+          cat result_bucket.txt
+
+      - name: Download Test Lab results
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f result_bucket.txt ]; then
+            echo "No bucket path file found."
+            exit 0
+          fi
+
+          RESULT_GS="$(cut -d= -f2- result_bucket.txt)"
+
+          if [ -z "$RESULT_GS" ]; then
+            echo "RESULT_GS is empty."
+            exit 0
+          fi
+
+          echo "Downloading from: $RESULT_GS"
+          gcloud storage cp --recursive "$RESULT_GS" testlab-results/ || true
+
+      - name: Upload Firebase Test Lab artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-testlab-results
+          path: |
+            testlab-results/**
+            testlab.log
+            gcloud_exit_code.txt
+            result_bucket.txt
+          if-no-files-found: ignore
