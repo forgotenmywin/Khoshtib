@@ -77,29 +77,20 @@ jobs:
 
           gcloud storage cp --recursive "$RESULT_GS" testlab-results-raw || true
 
-          python3 - <<'PY'
-from pathlib import Path
-import re
-import shutil
+          if [ -d testlab-results-raw ]; then
+            find testlab-results-raw -mindepth 1 | while IFS= read -r path; do
+              rel="${path#testlab-results-raw/}"
+              safe_rel="${rel//:/-}"
+              target="testlab-results-clean/$safe_rel"
 
-src = Path("testlab-results-raw")
-dst = Path("testlab-results-clean")
-
-if dst.exists():
-    shutil.rmtree(dst)
-dst.mkdir(parents=True, exist_ok=True)
-
-if src.exists():
-    for p in src.rglob("*"):
-        rel = p.relative_to(src)
-        safe_parts = [re.sub(r'[:*?"<>|]', '-', part) for part in rel.parts]
-        target = dst.joinpath(*safe_parts)
-        if p.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(p, target)
-PY
+              if [ -d "$path" ]; then
+                mkdir -p "$target"
+              else
+                mkdir -p "$(dirname "$target")"
+                cp "$path" "$target"
+              fi
+            done
+          fi
 
       - name: Upload Firebase Test Lab artifacts
         if: always()
