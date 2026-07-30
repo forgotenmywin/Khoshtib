@@ -20,7 +20,8 @@ jobs:
 
       - name: Download APK
         run: |
-          wget -O instagram.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
+          wget -O instagram.apk \
+          "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk"
 
       - name: Verify APK
         run: |
@@ -33,11 +34,6 @@ jobs:
             --project=starry-polymer-482712-b2 \
             --type=robo \
             --app=instagram.apk \
-            --device=model=MediumPhone.arm,version=34,locale=en,orientation=portrait
-
-      - name: Upload logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: firebase-testlab-logs
-          path: /tmp
+            --device=model=MediumPhone.arm,version=34,locale=en,orientation=portrait \
+            --timeout=10m \
+            --results-bucket=gs://test-lab-$(date +%s)
