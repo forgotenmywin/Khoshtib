@@ -13,11 +13,12 @@ jobs:
       - name: Run Emulator and Install APK
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
-          arch: arm64-v8a
+          api-level: 29
+          arch: x86_64
           target: google_apis
+          profile: Nexus 6
           script: |
-            # دانلود با گزینه های مقاوم
+            # دانلود APK
             curl -L -o app.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk" --fail --retry 3
             
             # نصب
