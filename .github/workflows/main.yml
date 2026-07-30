@@ -1,54 +1,30 @@
-name: Android Emulator Test
+name: Firebase Test Lab
 
 on:
   workflow_dispatch:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Authenticate Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Download APK
         run: |
-          curl -L -o instagram.apk \
-          https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk
+          wget "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk" -O app.apk
 
-      - name: Check APK
+      - name: Run Firebase Test Lab
         run: |
-          ls -lh instagram.apk
-          file instagram.apk
-
-      - name: Run Emulator
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: arm64-v8a
-          profile: pixel_6
-          cores: 2
-          force-avd-creation: true
-          emulator-boot-timeout: 900
-          disable-animations: true
-          script: |
-            adb wait-for-device
-
-            adb devices
-
-            adb install -r instagram.apk
-
-            adb shell monkey -p com.instagram.android \
-              -c android.intent.category.LAUNCHER 1
-
-            sleep 10
-
-            adb exec-out screencap -p > screenshot.png
-
-            ls -lh screenshot.png
-
-      - name: Upload Screenshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshot
-          path: screenshot.png
+          gcloud firebase test android run \
+            --type robo \
+            --app app.apk \
+            --device model=Pixel2,version=30
