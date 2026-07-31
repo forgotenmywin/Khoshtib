@@ -6,6 +6,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,19 +17,71 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run Emulator and Install APK
+      - name: Download APK
+        run: |
+          curl -L -o app.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk" --fail --retry 3
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-30
+
+      - name: Create AVD and generate snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           arch: x86_64
           target: google_apis
           profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "AVD created"
+
+      - name: Run Emulator, Install APK, and Capture Screenshot
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           script: |
-            # دانلود APK
-            curl -L -o app.apk "https://github.com/forgotenmywin/Khoshtib/releases/download/jjljkjl/instagram-441-0-0-0-72.apk" --fail --retry 3
-            
-            # نصب
+            echo "Installing APK..."
             adb install app.apk
-            
-            # اجرا
+
+            echo "Launching Instagram..."
             adb shell am start -n com.instagram.android/com.instagram.mainactivity.LauncherActivity
+
+            echo "Waiting 10 seconds..."
+            sleep 10
+
+            echo "Capturing screenshot..."
+            adb shell screencap -p /sdcard/screen.png
+            adb pull /sdcard/screen.png ./screen.png
+
+            echo "Grabbing logcat for debugging..."
+            adb logcat -d > logcat.txt
+
+      - name: Upload Screenshot Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instagram-screenshot
+          path: screen.png
+          retention-days: 7
+
+      - name: Upload Logcat Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logcat
+          path: logcat.txt
+          retention-days: 7
