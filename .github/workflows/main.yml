@@ -60,8 +60,8 @@ jobs:
             echo "Launching Instagram..."
             adb shell am start -n com.instagram.android/com.instagram.mainactivity.LauncherActivity
 
-            echo "Waiting 10 seconds..."
-            sleep 10
+            echo "Waiting 60 seconds for app to fully load..."
+            sleep 60
 
             echo "Capturing screenshot..."
             adb shell screencap -p /sdcard/screen.png
